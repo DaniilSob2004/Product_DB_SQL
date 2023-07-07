@@ -1,1 +1,1 @@
-# Product_DB_SQL
+![product](https://github.com/DaniilSob2004/Product_DB_SQL/assets/106149184/ff2962d8-b053-4c07-9264-20dc9cc2843d)
