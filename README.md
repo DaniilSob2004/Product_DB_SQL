@@ -1,1 +1,1 @@
-![product2](https://github.com/DaniilSob2004/Product_DB_SQL/assets/106149184/239d2866-1eb1-4e1b-a0f0-6970402816d9)
+![image](https://github.com/DaniilSob2004/Product_DB_SQL/assets/106149184/5cb7878d-c75b-419f-ad4b-bd93c2d58baf)
