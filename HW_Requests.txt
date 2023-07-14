@@ -1,0 +1,127 @@
+1. Посчитать возможную выручку за хлеб и молоко (с учётом скидок на эти товары)
+----------------------
+SELECT name, price, quantity, discount, country,
+       price * quantity * (1 - discount / 100) AS 'возможная выручка'
+FROM Product
+WHERE name LIKE '%молоко%' OR name LIKE '%хлеб%'
+----------------------
+
+2. Получить информацию о том, каких товаров вчера и сегодня доставили более 10 штук
+----------------------
+SELECT *
+FROM Product
+WHERE (date_of_delivery = CAST(GETDATE() AS DATE) OR
+       date_of_delivery = CAST(GETDATE() - 1 AS DATE)) AND
+       quantity >= 10
+----------------------
+
+3. Показать названия и цены товаров, доставленных на протяжении последнего месяца
+----------------------
+SELECT name, price, date_of_delivery
+FROM Product
+WHERE date_of_delivery >= DATEADD(MONTH, -1, GETDATE())
+ORDER BY 3
+----------------------
+
+4. Показать на экран названия и цены товаров с категорией 'Кондитерские изделия', но только не
+торговой марки "Roshen"
+----------------------
+SELECT name, price, category, producer
+FROM Product
+WHERE category = 'Кондитерские изделия' AND NOT producer = 'Roshen'
+----------------------
+
+5. Показать на экран все товары, названия которых начинается на букву "К", и категория которых содержит
+букву "А"
+----------------------
+SELECT *
+FROM Product
+WHERE name LIKE 'К%' AND category LIKE '%А%'
+----------------------
+
+6. Показать на экран все товары, названия которых начинается с "В" и по "Л" включительно
+----------------------
+SELECT *
+FROM Product
+WHERE name LIKE 'В%' AND category LIKE '%Л'
+----------------------
+
+7. Показать все товары стоимостью меньше 50 гривен, и датой поставки от 01.05.2023 и до вчерашнего дня
+----------------------
+SELECT *
+FROM Product
+WHERE price < 50 AND date_of_delivery >= CAST('2023-05-01' AS DATE) AND
+      date_of_delivery < CAST(GETDATE() AS DATE)
+ORDER BY date_of_delivery
+----------------------
+
+8. Показать все товары категории "Безалкогольные напитки", количество которых более 100
+----------------------
+SELECT *
+FROM Product
+WHERE category = 'Безалкогольные напитки' AND quantity > 100
+----------------------
+
+9. Получить информацию о товарах ценой от 100 до 200 гривен, отсортировать цену по возрастанию
+----------------------
+SELECT name, price, country
+FROM Product
+WHERE price BETWEEN 100 AND 200
+ORDER BY 2
+----------------------
+
+10. Уменьшить цены на все товары на 5%
+----------------------
+UPDATE ProductCopy SET price *= 0.95
+SELECT *
+FROM ProductCopy
+----------------------
+
+11. Проставить сегодняшнюю дату доставки на все товары, в которых такая информация отсутствует
+----------------------
+UPDATE Product
+SET date_of_delivery = CAST(GETDATE() AS DATE)
+WHERE date_of_delivery IS NULL
+----------------------
+
+12. Удалить все товары, кол-во которых меньше 100, а цена более 70 гривен
+----------------------
+DELETE FROM ProductCopy
+WHERE quantity < 500 AND price > 70
+----------------------
+
+13. Удалить все алкогольные напитки и кондитерские изделия
+----------------------
+DELETE FROM ProductCopy
+WHERE category IN ('Напитки', 'Фрукты')
+----------------------
+
+14. Удалить все товары, названия которых состоят из 5 букв
+----------------------
+DELETE FROM ProductCopy
+WHERE LEN(name) = 5
+----------------------
+
+15. Удалить все товары, дата доставки которых была более 3 месяцев назад от текущей даты
+----------------------
+DELETE FROM ProductCopy
+WHERE date_of_delivery <= DATEADD(MONTH, -3, GETDATE())
+----------------------
+
+16. Показать 5 самых дорогих товаров
+----------------------
+SELECT TOP 5 name, price, country
+FROM Product
+ORDER BY 2 DESC
+----------------------
+
+17. Удалить все товары, информация о производителе которых неизвестна, или же если скидка на эти товары
+более 10 %
+----------------------
+DELETE FROM ProductCopy
+WHERE producer IS NULL OR discount > 10
+----------------------
+
+
+
+
