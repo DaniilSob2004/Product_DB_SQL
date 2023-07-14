@@ -28,7 +28,7 @@ ORDER BY 3
 ----------------------
 SELECT name, price, category, producer
 FROM Product
-WHERE category = 'Кондитерские изделия' AND NOT producer = 'Roshen'
+WHERE category = 'Кондитерские изделия' AND producer != 'Roshen'
 ----------------------
 
 5. Показать на экран все товары, названия которых начинается на букву "К", и категория которых содержит
@@ -42,8 +42,8 @@ WHERE name LIKE 'К%' AND category LIKE '%А%'
 6. Показать на экран все товары, названия которых начинается с "В" и по "Л" включительно
 ----------------------
 SELECT *
-FROM Product
-WHERE name LIKE 'В%' AND category LIKE '%Л'
+FROM CopyProduct
+WHERE name LIKE '[В-Л]%'
 ----------------------
 
 7. Показать все товары стоимостью меньше 50 гривен, и датой поставки от 01.05.2023 и до вчерашнего дня
