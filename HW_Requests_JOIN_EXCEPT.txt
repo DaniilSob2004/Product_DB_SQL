@@ -1,0 +1,46 @@
+1) Показать названия товаров и их производителей, но и в том числе тех производителей, у которых нет товаров
+--------------------------
+SELECT p.name AS 'названия', pr.name AS 'производитель'
+FROM Product AS p
+RIGHT JOIN Producer AS pr ON pr.id = p.id_producer
+--------------------------
+
+
+2) Показать названия товаров, даты их поставки и поставщиков, в том числе тех поставщиков, которые ничего
+не успели поставить
+--------------------------
+SELECT p.name AS 'названия', s.name AS 'поставщик', d.date_of_delivery AS 'дата поставки', d.id_supplier
+FROM Product AS p
+JOIN Delivery AS d ON p.id = d.id_product
+RIGHT JOIN Supplier AS s ON s.id = d.id_supplier
+ORDER BY d.id_supplier
+--------------------------
+
+
+3) Показать те названия категорий, где нет товаров фирмы "Coca-Cola Company"
+--------------------------
+SELECT name
+FROM Category
+EXCEPT
+SELECT DISTINCT c.name
+FROM Product AS p
+JOIN Category AS c ON c.id = p.id_category
+JOIN Producer AS pr ON pr.id = p.id_producer
+WHERE pr.name = 'Coca-Cola Company'
+--------------------------
+
+
+4) Показать производителей, которые не выпускают продукты молочной категории
+--------------------------
+SELECT name
+FROM Producer
+EXCEPT
+SELECT pr.name
+FROM Product AS p
+JOIN Category AS c ON c.id = p.id_category
+JOIN Producer AS pr ON pr.id = p.id_producer
+WHERE c.name = 'Молочка'
+--------------------------
+
+
+
