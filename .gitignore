@@ -11,6 +11,7 @@
 *.sln.docstates
 
 image.png
+publishment_db.png
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

@@ -1,6 +1,9 @@
  - Диаграмма БД "Store":
 ![Store_Diagram](https://github.com/DaniilSob2004/Product_DB_SQL/assets/106149184/571c1d6a-2a16-4a6e-8a8b-17b818127922)
 
+ - Диаграмма БД "Publishment"
+![publishment_db](https://github.com/DaniilSob2004/Product_DB_SQL/assets/106149184/b89869c1-256d-432d-a75e-2246615b3b85)
+
  - Импорт данных из Excel:
 ![PriceExcel](https://github.com/DaniilSob2004/Product_DB_SQL/assets/106149184/b7b89430-1818-4758-80f2-1471fa63004b)
 
