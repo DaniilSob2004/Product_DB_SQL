@@ -1,0 +1,115 @@
+1. Показать самый популярный товар магазина (больше всего раз продавался)
+--------------------------------
+SELECT p.name
+FROM Product AS p
+WHERE p.id IN (SELECT TOP 1 id_product
+               FROM Sale AS s
+	       GROUP BY id_product
+	       ORDER BY COUNT(id_product) DESC)
+--------------------------------
+
+
+2. Если общее количество товаров всех категорий принять за 100%, необходимо посчитать, сколько
+товаров каждой категории (в процентном отношении) было продано
+--------------------------------
+SELECT c.name AS 'название', CAST(COUNT(p.name) AS float) / (SELECT COUNT(*) FROM Product) * 100 AS '%'
+FROM Product AS p
+JOIN Category AS c ON c.id = p.id_category
+JOIN Sale AS s ON p.id = s.id_product
+GROUP BY c.name
+--------------------------------
+
+
+3. Показать названия поставщиков, которые не поставляли йогурт
+--------------------------------
+SELECT s.name AS 'поставщики'
+FROM Supplier AS s
+WHERE s.id IN (SELECT id_supplier
+               FROM Delivery AS d
+	       WHERE d.id_product IN (SELECT id
+	                              FROM Product AS p
+		                      WHERE p.name NOT LIKE 'Йогурт'))
+--------------------------------
+
+
+4. Показать на экран список производителей, которые живут в той же стране, что и фирма
+ООО “Зеленоглазое такси”
+--------------------------------
+SELECT pr.name AS 'производитель'
+FROM Producer AS pr
+WHERE pr.id_address IN (SELECT a.id
+			FROM Address AS a
+			WHERE a.id_city IN (SELECT c.id
+					    FROM City AS c
+					    WHERE c.id_region IN (SELECT r.id
+					                          FROM Region AS r
+								  WHERE r.id_country = (SELECT co.id
+											FROM Country AS co
+											WHERE co.id = (SELECT r.id_country  -- страна фирмы Простоквашино
+												       FROM Region AS r
+												       WHERE r.id = (SELECT c.id_region
+													             FROM City AS c
+														     WHERE c.id = (SELECT a.id_city
+																   FROM Address AS a
+																   WHERE a.id = (SELECT id_address
+																		 FROM Producer AS pr
+																		 WHERE pr.name = 'Простоквашино'))))))))
+--------------------------------
+
+
+5. Показать всех производителей, количество наименований товаров которых в магазине больше,
+чем количество наименований всех товаров фирмы ООО «Самтаймс»
+--------------------------------
+SELECT pr.name AS 'производитель'
+FROM Producer AS pr
+WHERE EXISTS (SELECT p.id_producer
+              FROM Product AS p
+              WHERE pr.id = p.id_producer)
+GROUP BY pr.name
+HAVING COUNT(*) > (SELECT COUNT(*)  -- кол-во товаров 'ООО «Самтаймс»'
+	           FROM Product AS p
+		   WHERE p.id_producer IN (SELECT pr.id
+					   FROM Producer AS pr
+					   WHERE pr.name LIKE 'ООО "Самтаймс"'))
+--------------------------------
+
+
+6. Показать общее количество продаж по каждому дню, начиная от 01.01.2023, и по сей день.
+Отсортировать по убыванию даты
+--------------------------------
+SELECT s.date_of_sale AS 'дата продажи', SUM(s.quantity) AS 'количество продаж'
+FROM Sale AS s
+WHERE s.date_of_sale BETWEEN '2023-01-01' AND GETDATE()
+GROUP BY s.date_of_sale
+ORDER BY 1 DESC
+--------------------------------
+
+
+7. Вычислить количество товаров каждой категории, которые пора списать (их количество известно,
+и они не продавались вот уже три месяца)
+--------------------------------
+SELECT temp.category AS 'категория', COUNT(temp.name) AS 'количество товаров для списания'
+FROM  -- получаем таблицу товаров и их категории которые нужно списать
+(
+    -- все товары и их категории
+    SELECT p.name, c.name AS 'category'
+    FROM Product AS p
+    JOIN Category AS c ON c.id = p.id_category
+
+    EXCEPT  -- отнимаем
+
+    -- товары которые продавались последние 3 месяца
+    SELECT p.name, c.name AS 'category'
+    FROM Product AS p
+    JOIN Category AS c ON c.id = p.id_category
+    JOIN Sale AS s ON p.id = s.id_product
+    WHERE s.quantity IS NOT NULL AND s.date_of_sale > DATEADD(MONTH, -3, GETDATE())
+) AS temp
+
+GROUP BY temp.category  -- группируем по категориям
+--------------------------------
+
+
+
+
+
