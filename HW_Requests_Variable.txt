@@ -1,0 +1,135 @@
+1. Скрипт проверяет, какое сейчас время суток, и выдаёт приветствие "добрый вечер!", "добрый день!" и тп
+-------------------------------------
+DECLARE @hour_now int = DATEPART(HOUR, GETDATE())
+IF @hour_now BETWEEN 5 AND 11 PRINT 'Доброе утро!'
+ELSE IF @hour_now BETWEEN 12 AND 16 PRINT 'Доброе день!'
+ELSE IF @hour_now BETWEEN 17 AND 23 PRINT 'Доброе вечер!'
+ELSE PRINT 'Доброй ночи!'
+-------------------------------------
+
+
+2. Скрипт генерирует случайный пароль длиной 10 символов
+-------------------------------------
+DECLARE @len_password int = 10
+DECLARE @current int = 0
+DECLARE @new_password nvarchar(20) = ''
+DECLARE @r int
+
+WHILE @current < @len_password
+BEGIN
+    SET @r = RAND() * 3  -- рандом от 0 до 2
+	-- добавляем символ в переменную
+	SET @new_password += CASE @r
+	                         WHEN 0 THEN CHAR(RAND() * 26 + 65)  -- генерация (A-Z)
+				 WHEN 1 THEN CHAR(RAND() * 26 + 97)  -- генерация (a-z)
+				 ELSE CHAR(RAND() * 10 + 48)  -- генерация (0-9)
+	                     END
+	SET @current += 1
+END
+
+PRINT @new_password
+-------------------------------------
+
+
+3. Показать факториалы всех чисел от 0 до 25
+-------------------------------------
+DECLARE @cur_num int = 0
+DECLARE @factorial_num int = 0
+DECLARE @max_num int = 20
+DECLARE @total bigint = 0
+
+WHILE @cur_num <= @max_num
+BEGIN
+    if @cur_num != 0
+	BEGIN
+		SET @total = 1
+		SET @factorial_num = 1
+
+		WHILE @factorial_num <= @cur_num
+		BEGIN
+			SET @total *= @factorial_num
+			SET @factorial_num += 1
+		END
+	END
+
+	PRINT convert(varchar, @cur_num) + '! - ' + convert(varchar, @total)
+    SET @cur_num += 1
+END
+-------------------------------------
+
+
+4. Показать все простые числа от 3 до 1.000.000
+-------------------------------------
+DECLARE @cur int = 3
+DECLARE @max_num int = 100
+DECLARE @div int
+DECLARE @flag bit
+
+WHILE @cur <= @max_num  -- 53
+BEGIN
+    SET @div = 2
+    SET @flag = 1
+
+    WHILE @div * @div <= @cur
+    BEGIN
+        IF @cur % @div = 0   -- число делится на @div, значит не является простым
+        BEGIN
+            SET @flag = 0
+            BREAK
+        END
+
+        SET @div += 1
+    END
+
+    IF @flag = 1 PRINT @cur
+    SET @cur += 1
+END
+-------------------------------------
+
+
+5. Игровой автомат "однорукий бандит"
+-------------------------------------
+DECLARE @num1 int = rand() * 8  -- рандом 3 числа
+DECLARE @num2 int = rand() * 8
+DECLARE @num3 int = rand() * 8
+DECLARE @user_credits int  -- переменная для временного хранения кредитов
+
+-- извлекаем из таблицы кол-во кредитов
+SELECT @user_credits = credits
+FROM Bandit
+
+PRINT '-10 кредитов за нажатие'
+SET @user_credits -= 10  -- за каждый запуск -10 кредитов
+IF @user_credits <= 0
+BEGIN
+    PRINT 'Вы проиграли! Но вам начислены дополнительно 500 кредитов!'
+    SET @user_credits = 500  -- обновляем кол-во кредитов
+END
+ELSE
+BEGIN
+	IF @num1 = @num2 AND @num2 = @num3  -- если числа равны и при этом 777, то победа, иначе +50 кредитов
+	BEGIN
+	    IF @num1 = 777
+	    BEGIN
+		PRINT 'Вы победили! Вам начислены 500 кредитов!'
+		SET @user_credits = 500  -- обновляем кол-во кредитов
+	    END
+	    ELSE
+	    BEGIN
+                PRINT '+50 кредитов'
+		SET @user_credits += 50
+	    END
+	END
+END
+
+-- выводим информацию пользователю
+PRINT convert(varchar, @num1) + ' - ' + convert(varchar, @num2) + ' - ' + convert(varchar, @num3)
+PRINT @user_credits
+
+-- обновляем кол-во кредитов в таблице
+UPDATE Bandit
+SET credits = @user_credits
+-------------------------------------
+
+
+
