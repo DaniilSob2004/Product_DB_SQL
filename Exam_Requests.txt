@@ -1,0 +1,223 @@
+1. Показать TOP-10 пользователей с самым высоким средним рейтингом анкеты (средний рейтинг должен быть
+представлен в виде вещесвтенного числа):
+------------------------------------------
+SELECT top_rating.id, u.nick, u.age, g.name AS 'gender', top_rating.avg_rate
+FROM (SELECT TOP 10 id_kogo AS 'id', FORMAT(AVG(CAST(rating AS float)), '0.#') AS 'avg_rate'
+      FROM anketa_rate
+      GROUP BY id_kogo
+      ORDER BY 2 DESC) AS top_rating
+JOIN users AS u ON u.user_id = top_rating.id
+JOIN gender AS g ON g.id = u.sex
+------------------------------------------
+
+
+2. Показать всех пользователей с высшим образованием, которые не курят, не пьют и не употребляют наркотики:
+------------------------------------------
+SELECT u.user_id, u.nick, u.age, g.name AS 'gender'
+FROM users AS u
+JOIN gender AS g ON g.id = u.sex
+WHERE u.id_education = (SELECT id FROM education WHERE name LIKE 'высшее') AND
+      u.my_smoke = (SELECT id FROM smoking WHERE name LIKE 'не курю') AND
+      u.my_drink = (SELECT id FROM drinking WHERE name LIKE 'не пью вообще') AND
+      u.my_drugs IN (SELECT id FROM drugs WHERE name IN ('я против наркотиков', 'уже бросил'))
+------------------------------------------
+
+
+3. Сделать запрос, который позволит найти пользователей по указанным данным -
+(ник(не обязательно точный), пол, мин.возраст, макс.возраст, мин.рост, макс.рост, мин.вес, макс.вес):
+------------------------------------------
+DECLARE @user_nick nvarchar(50) = 'дан'
+DECLARE @user_sex nvarchar(20) = 'женский'
+DECLARE @min_age int = 16, @max_age int = 25
+DECLARE @min_height float = 150, @max_height float = 175
+DECLARE @min_weight float = 50, @max_weight float = 75
+
+SELECT user_id, nick, age, @user_sex AS 'gender'
+FROM users
+WHERE nick LIKE '%' + @user_nick + '%' AND
+      sex = (SELECT id FROM gender WHERE name LIKE @user_sex) AND
+      age BETWEEN @min_age AND @max_age AND
+      (rost BETWEEN @min_height AND @max_height) AND
+      (ves BETWEEN @min_weight AND @max_weight)
+------------------------------------------
+
+
+4. Показать всех стройных голубоглазых блондинок, затем всех спортивных кареглазых брюнетов,
+а в конце их общее количество:
+------------------------------------------
+DECLARE @wooman_table TABLE(  -- временная таблица для женщин
+    user_id int,
+	nick nvarchar(50),
+	age float,
+	gender nvarchar(20)
+)
+DECLARE @man_table TABLE(  -- временная таблица для мужщин
+    user_id int,
+	nick nvarchar(50),
+	age float,
+	gender nvarchar(20)
+)
+
+INSERT INTO @wooman_table  -- сохраняем в таблицу выборку
+SELECT user_id, nick, age, 'женский' AS 'gender'
+FROM users AS u
+WHERE u.sex = (SELECT id FROM gender WHERE name LIKE 'женский') AND
+	       u.my_build = (SELECT id FROM figure WHERE name LIKE 'стройное') AND
+               u.eyes_color = (SELECT id FROM eyescolor WHERE name LIKE 'голубые') AND
+	       u.hair_color = (SELECT id FROM haircolor WHERE name LIKE 'блонд')
+
+
+INSERT INTO @man_table  -- сохраняем в таблицу выборку
+SELECT user_id, nick, age, 'мужской' AS 'gender'
+FROM users AS u
+WHERE u.sex = (SELECT id FROM gender WHERE name LIKE 'мужской') AND
+	       u.my_build = (SELECT id FROM figure WHERE name LIKE 'спортивное') AND
+               u.eyes_color = (SELECT id FROM eyescolor WHERE name LIKE 'карие') AND
+	       u.hair_color = (SELECT id FROM haircolor WHERE name LIKE 'брюнет')
+
+SELECT * FROM @wooman_table
+UNION ALL
+SELECT * FROM @man_table
+UNION ALL
+SELECT NULL, 'Общее кол-во:', (SELECT COUNT(*) FROM @wooman_table) + (SELECT COUNT(*) FROM @man_table), 'м/ж'
+------------------------------------------
+
+
+5. Показать всех программистов с пирсингом, которые к тому же умеют вышивать крестиком:
+------------------------------------------
+SELECT user_id, nick, age, g.name AS 'gender'
+FROM users AS u
+JOIN gender AS g ON g.id = u.sex
+WHERE u.id_framework = (SELECT id FROM framework WHERE name LIKE 'информационные технологии') AND
+      u.user_id IN (SELECT user_id FROM users_moles WHERE moles_id = (SELECT id FROM moles WHERE name LIKE 'пирсинг')) AND
+      u.user_id IN (SELECT user_id FROM users_interes WHERE interes_id = (SELECT id FROM interes WHERE name LIKE 'а ещё я крестиком вышивать умею'))
+------------------------------------------
+
+
+6. Показать сколько подарков подарили каждому пользователю, у которого знак зодиака Рыбы:
+------------------------------------------
+SELECT user_id, nick, age, g.name AS 'gender', COUNT(*) AS 'amount gift'
+FROM users AS u
+JOIN gender AS g ON g.id = u.sex
+WHERE id_zodiak = (SELECT id FROM goroskop WHERE name LIKE 'рыбы') AND
+      user_id IN (SELECT id_to FROM gift_service)
+GROUP BY user_id, nick, age, g.name
+------------------------------------------
+
+
+7. Показать как много зарабатывают себе на жизнь полиглоты (знающие более 5 языков), совершенно не
+умеющие готовить:
+------------------------------------------
+SELECT user_id, nick, age, g.name AS 'gender', r.name AS 'заработок'
+FROM users AS u
+JOIN gender AS g ON g.id = u.sex
+JOIN richness AS r ON r.id = u.my_rich
+WHERE u.user_id IN (SELECT user_id
+		    FROM (SELECT user_id, COUNT(*) AS count
+			  FROM users_languages
+			  GROUP BY user_id
+			  HAVING COUNT(*) > 5) AS love_langs)
+------------------------------------------
+
+
+8. Показать всех буддистов, которые занимаются восточными единоборствами,
+живут на вокзале, и в свободное время катаются на скейте:
+------------------------------------------
+SELECT user_id, nick, age, g.name AS 'gender'
+FROM users AS u
+JOIN gender AS g ON g.id = u.sex
+WHERE religion = (SELECT id FROM religion WHERE name LIKE 'буддизм') AND
+      user_id IN (SELECT user_id
+		  FROM users_sport
+		  WHERE sport_id = (SELECT id FROM sport WHERE name LIKE 'единоборства')) AND
+	  my_home = (SELECT id FROM residence WHERE name LIKE 'живу на вокзале') AND
+	  user_id IN (SELECT user_id
+		      FROM users_sport
+		      WHERE sport_id = (SELECT id FROM sport WHERE name LIKE 'скейтборд'))
+------------------------------------------
+
+
+9. Показать возрастную аудиторию пользователей в виде (возраст	  кол-во    %):
+------------------------------------------
+DECLARE @count_users int = (SELECT COUNT(*) FROM users)  -- запоминаем общее кол-во пользователей
+
+SELECT 'до 18' AS 'возраст', COUNT(*) AS 'кол-во', FORMAT(COUNT(*) * 100.0 / @count_users, '0.#') AS '%'
+FROM (SELECT age
+      FROM users
+      WHERE age <= 18) AS users_to_18
+UNION
+SELECT '19-24' AS 'возраст', COUNT(*) AS 'кол-во', FORMAT(COUNT(*) * 100.0 / @count_users, '0.#') AS '%'
+FROM (SELECT age
+      FROM users
+      WHERE age BETWEEN 19 AND 24) AS users_from_19_to_24
+UNION
+SELECT '25-30' AS 'возраст', COUNT(*) AS 'кол-во', FORMAT(COUNT(*) * 100.0 / @count_users, '0.#') AS '%'
+FROM (SELECT age
+      FROM users
+      WHERE age BETWEEN 25 AND 30) AS users_from_25_to_30
+UNION
+SELECT 'от 30' AS 'возраст', COUNT(*) AS 'кол-во', FORMAT(COUNT(*) * 100.0 / @count_users, '0.#') AS '%'
+FROM (SELECT age
+      FROM users
+      WHERE age > 30) AS users_from_30
+------------------------------------------
+
+
+10. Показать 5 самых популярных слов, отправленных в личных сообщениях, и то, как часто они встречаются:
+------------------------------------------
+--CREATE TABLE count_words(
+--  word nvarchar(50) primary key,
+--  [count] int DEFAULT 1)
+
+DECLARE my_cur CURSOR FOR SELECT mess FROM [messages]  -- курсор для сообщений
+OPEN my_cur
+
+DECLARE @mess nvarchar(300)  -- для сообщений
+DECLARE @word nvarchar(50)  -- для слов
+
+FETCH NEXT FROM my_cur INTO @mess
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- удаляем в сообщении лишние символы и преобразуем в нижний регистр, CHAR(9) - /t, CHAR(10) - \n, CHAR(13) - /r
+    SET @mess = LOWER(TRANSLATE(@mess, '!?)=:;*.,^/"-+' + CHAR(9) + CHAR(10) + CHAR(13), '                 '))
+
+	-- курсор для таблицы слов, из которых состоит сообщение
+    DECLARE word_cur CURSOR FOR SELECT value FROM STRING_SPLIT(@mess, ' ') WHERE LTRIM(RTRIM(value)) != ''
+    OPEN word_cur
+    FETCH NEXT FROM word_cur INTO @word
+
+    WHILE @@FETCH_STATUS = 0 
+    BEGIN
+	IF EXISTS (SELECT word FROM count_words WHERE word LIKE @word)  -- если запись со словом @word есть
+        BEGIN
+	    UPDATE count_words  -- обновляем в таблице для указанной записи поле count, где слово равняется @word
+	    SET [count] += 1
+	    WHERE word = @word
+	END
+	ELSE
+	BEGIN
+	    INSERT INTO count_words(word)  -- если слово ещё нет, то добалвяем новую запись с новым словом
+            VALUES (@word)
+        END
+        FETCH NEXT FROM word_cur INTO @word
+    END
+
+    CLOSE word_cur
+    DEALLOCATE word_cur
+
+    FETCH NEXT FROM my_cur INTO @mess
+END
+
+CLOSE my_cur
+DEALLOCATE my_cur
+
+-- выводим топ 5 записей
+SELECT TOP 5 *
+FROM count_words
+ORDER BY [count] DESC
+------------------------------------------
+
+
+
+

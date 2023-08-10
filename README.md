@@ -1,3 +1,6 @@
+ - БД "Туристическое агенство":
+![DB_Resort](https://github.com/DaniilSob2004/Product_DB_SQL/assets/106149184/5f87b3d1-5935-4c64-8459-b92972993927)
+
  - Диаграмма БД "Store":
 ![Store_Diagram](https://github.com/DaniilSob2004/Product_DB_SQL/assets/106149184/571c1d6a-2a16-4a6e-8a8b-17b818127922)
 
